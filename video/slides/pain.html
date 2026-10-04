@@ -1,0 +1,22 @@
+<section id="pain" data-transition="fade" style="background:#F6F5F1;color:#14213D;font-family:'Be Vietnam Pro', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:32px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;color:#A8501A;letter-spacing:2px;text-transform:uppercase">01 · Vấn đề</p>
+<h2 style="font-size:64px;font-weight:700;line-height:1.1;color:#14213D">Cùng 1 triệu dòng: 100 file khác 20.000 file thế nào?</h2>
+<div style="display:flex;gap:32px">
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;background:#FFFFFF;padding:40px;border:1px solid #DDD9CF;border-radius:16px">
+<h3 style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:44px;font-weight:600;color:#14213D">S1 · 100 file</h3>
+<p style="font-size:30px;line-height:1.4;color:#45506A">5 commit → 5 file JSON trong <span style="color:#14213D">_delta_log</span></p>
+<p style="font-size:30px;line-height:1.4;color:#45506A">100 bản ghi file kèm min/max</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;background:#FFFFFF;padding:40px;border:2px solid #D9822B;border-radius:16px">
+<h3 style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:44px;font-weight:600;color:#14213D">S4 · 20.000 file</h3>
+<p style="font-size:30px;line-height:1.4;color:#45506A">1.000 commit → 1.000 file JSON phải đọc lại</p>
+<p style="font-size:30px;line-height:1.4;color:#45506A">20.000 bản ghi file kèm min/max</p>
+</div>
+</div>
+<p style="font-size:28px;line-height:1.4;color:#45506A">Dữ liệu ghi theo thứ tự ngẫu nhiên → min/max của các file chồng lấn → lọc bằng min/max gần như không loại được file nào.</p>
+<div style="display:flex;flex-direction:column;gap:8px;background:#14213D;padding:32px 40px;border-radius:16px">
+<p style="font-size:30px;line-height:1.4;color:#F3F1EA"><b><span style="color:#F0A35E">Giả thuyết:</span></b> thời gian planning tăng theo số file và số commit, không theo dung lượng dữ liệu. Checkpoint + sắp xếp theo cột lọc giảm p95 planning ≥ 3× ở quy mô lớn.</p>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#6B7385">Nguồn: Delta Lake Transaction Log Protocol (truy cập 2026-10-04)</p>
+<aside>Mỗi lần mở một bảng Delta, engine phải đọc lại toàn bộ transaction log để biết bảng có những file nào. Cùng một triệu dòng, một trăm file chỉ cần năm commit, còn hai mươi nghìn file cần một nghìn commit. Dữ liệu lại xếp ngẫu nhiên, nên thống kê min max gần như không loại được file nào. Giả thuyết: planning tăng theo số file và số commit, và checkpoint cộng sắp xếp dữ liệu giảm p chín mươi lăm ít nhất ba lần.</aside>
+</section>

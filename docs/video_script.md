@@ -35,3 +35,7 @@ done
 printf "file 'seg_%s.mp4'\n" 01 02 03 04 05 > list.txt
 ffmpeg -y -f concat -safe 0 -i list.txt -c copy nhom7_metadata_scaling.mp4
 ```
+
+## Dựng tự động
+`python video/make_video.py --fake` (số liệu giả, có nhãn) hoặc `--state S4` (số thật sau phút 85).
+Giọng mặc định là macOS "Linh" (tạm). Dùng Gemini: đặt `hook_1.wav … hook_3.wav, cover.wav, pain.wav, design.wav, results.wav, decision.wav` vào `video/audio/` rồi thêm `--audio-dir video/audio`. Lời thoại cần đọc nằm trong `video/build/<fake|S4>/narration.txt`.
