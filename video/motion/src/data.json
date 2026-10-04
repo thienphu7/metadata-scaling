@@ -1,81 +1,120 @@
 {
  "metrics": {
-  "fake": true,
+  "fake": false,
   "state": "S4",
   "n_files": 20000,
-  "base": 0.5103654296110794,
-  "a": 0.16995445261877912,
-  "b": 0.06807012079830946,
-  "sa": 3.0029541547573824,
-  "sb": 7.497642484332928,
-  "sel_b": 100,
-  "alt_sel": 20000,
-  "cost_b": null,
+  "local": [
+   "S1",
+   "S2",
+   "S3"
+  ],
+  "base_c": 0.39896894359999346,
+  "a_c": 0.15834169374948032,
+  "b_c": 0.15611751860087675,
+  "sa_c": 2.5196708090745865,
+  "sb_c": 2.5555680565227283,
+  "base_w": 0.22950628315065835,
+  "a_w": 0.02154170015091942,
+  "b_w": 0.02010335625054718,
+  "sa_w": 10.654046873865841,
+  "sb_w": 11.416316772698668,
+  "load": {
+   "baseline": 0.3966469230997063,
+   "opt_a_checkpoint": 0.1560201668499758,
+   "opt_b_sorted": 0.1558637561010982
+  },
+  "prune": {
+   "baseline": 0.0024849606003044,
+   "opt_a_checkpoint": 0.00236754345096411,
+   "opt_b_sorted": 0.00027140655001853497
+  },
+  "scan_base": 2.4472496934505217,
+  "scan_b": 0.020517791550628262,
+  "sel_base": 8184,
+  "sel_b": 10,
+  "alt_sel": 19888,
+  "rows_main": 473,
+  "rows_ok": true,
+  "cost_a": 0.483238832999632,
+  "cost_b": 8.752748791001068,
+  "mb_b": 37.505786,
+  "curve_hw_note": "S1, S2, S3 đo trên cùng một máy (máy Phong)",
   "chart": {
    "baseline": [
     [
      100,
-     0.002541943758509775
+     0.19140004994114856
     ],
     [
      1000,
-     0.02378770306695547
+     0.22194421662716193
     ],
     [
      10000,
-     0.2669246282208888
-    ],
-    [
-     20000,
-     0.5103654296110794
+     0.44333620627876363
     ]
    ],
    "opt_a_checkpoint": [
     [
      100,
-     0.000845169824782985
+     0.19361367326928303
     ],
     [
      1000,
-     0.008178825729130205
+     0.2017646752414293
     ],
     [
      10000,
-     0.08205219823337061
-    ],
-    [
-     20000,
-     0.16995445261877912
+     0.24567660607863212
     ]
    ],
    "opt_b_sorted": [
     [
      100,
-     0.000353922762859765
+     0.1974899584893137
     ],
     [
      1000,
-     0.003389062677704875
+     0.2047803275985643
     ],
     [
      10000,
-     0.03406183440782336
-    ],
-    [
-     20000,
-     0.06807012079830946
+     0.25754446714418
     ]
    ]
   },
+  "curve_lo": 0.19140004994114856,
+  "curve_hi": 0.44333620627876363,
+  "curve_n_lo": 100,
+  "curve_n_hi": 10000,
   "fmt": {
    "n_files": "20.000",
-   "base": "0,51",
-   "a": "0,17",
-   "b": "0,07",
-   "sa": "3,0",
-   "sb": "7,5",
-   "sel_b": "100",
-   "alt_sel": "20.000"
+   "base_c": "0,40",
+   "a_c": "0,16",
+   "b_c": "0,16",
+   "sa_c": "2,5",
+   "sb_c": "2,6",
+   "sa_w": "10,7",
+   "sb_w": "11,4",
+   "base_w": "0,23",
+   "a_w": "0,022",
+   "load_base": "0,40",
+   "load_a": "0,16",
+   "prune_base": "0,0025",
+   "scan_base": "2,45",
+   "scan_b": "0,02",
+   "sel_base": "8.184",
+   "sel_b": "10",
+   "alt_sel": "19.888",
+   "rows_main": "473",
+   "curve_lo": "0,19",
+   "curve_hi": "0,44",
+   "curve_n_lo": "100",
+   "curve_n_hi": "10.000",
+   "cost_a": "0,48",
+   "cost_b": "8,75",
+   "mb_b": "37,5",
+   "load_share": "99"
   }
  },
  "scenes": [
@@ -95,9 +134,9 @@
   },
   {
    "id": "hook_3",
-   "text": "Và engine mất 0,51 giây... chỉ để lên kế hoạch. Chưa đọc một dòng nào.",
+   "text": "Và engine mất 0,40 giây... chỉ để lên kế hoạch. Chưa đọc một dòng nào.",
    "voice": "voice/hook_3.wav",
-   "dur": 4.83,
+   "dur": 4.855,
    "model": "gemini-3.8-flash-tts"
   },
   {
@@ -116,9 +155,9 @@
   },
   {
    "id": "prob_2",
-   "text": "Dữ liệu lại nằm ngẫu nhiên, nên khoảng min max của mọi file đều chồng lên nhau. Không file nào bị loại.",
+   "text": "Dữ liệu lại nằm ngẫu nhiên, nên khoảng min max của các file chồng lên nhau. Lọc bằng min max loại được rất ít file.",
    "voice": "voice/prob_2.wav",
-   "dur": 5.693,
+   "dur": 6.585,
    "model": "gemini-3.8-flash-tts"
   },
   {
@@ -130,37 +169,79 @@
   },
   {
    "id": "meth_1",
-   "text": "Cách thứ nhất: checkpoint. Gộp toàn bộ log thành một file duy nhất.",
+   "text": "Cách thứ nhất: checkpoint. Gộp toàn bộ log thành một file duy nhất, không đụng tới dữ liệu.",
    "voice": "voice/meth_1.wav",
-   "dur": 4.385,
+   "dur": 5.683,
    "model": "gemini-3.8-flash-tts"
   },
   {
    "id": "meth_2",
-   "text": "Cách thứ hai: sắp xếp dữ liệu theo cột lọc. Mỗi file giữ một khoảng hẹp, và chỉ còn 100 trên 20.000 file được chọn.",
+   "text": "Cách thứ hai: sắp xếp lại dữ liệu theo cột lọc, giữ nguyên số file, rồi checkpoint. Mỗi file chỉ còn giữ một khoảng hẹp.",
    "voice": "voice/meth_2.wav",
-   "dur": 6.486,
+   "dur": 7.366,
    "model": "gemini-3.8-flash-tts"
   },
   {
    "id": "exp",
-   "text": "Cùng một triệu dòng, chia từ một trăm đến hai mươi nghìn file. Mỗi phép đo chạy mười lần. Trạng thái lớn nhất bị khóa lại, chỉ chạy khi phương pháp đã chốt.",
+   "text": "Cùng một triệu dòng, chia từ một trăm đến hai mươi nghìn file. Ba truy vấn, mười lần mỗi tổ hợp. Trạng thái lớn nhất bị khóa lại, chỉ chạy khi phương pháp đã chốt.",
    "voice": "voice/exp.wav",
-   "dur": 8.826,
+   "dur": 9.551,
    "model": "gemini-3.8-flash-tts"
   },
   {
-   "id": "res",
-   "text": "Số liệu minh họa. Trên tập held-out: checkpoint nhanh hơn 3,0 lần. Checkpoint cộng sắp xếp: nhanh hơn 7,5 lần.",
-   "voice": "voice/res.wav",
-   "dur": 7.603,
+   "id": "measure",
+   "text": "Thời gian planning gồm hai phần: đọc log để biết danh sách file, và lọc file bằng min max. Cold là mỗi lần một tiến trình mới. Warm là chạy lại trong cùng tiến trình.",
+   "voice": "voice/measure.wav",
+   "dur": 10.201,
+   "model": "gemini-3.8-flash-tts"
+  },
+  {
+   "id": "curve",
+   "text": "Trên cùng một máy, từ 100 đến 10.000 file, p chín mươi lăm planning của baseline tăng từ 0,19 lên 0,44 giây. Cùng dữ liệu, chỉ khác số file. Checkpoint kéo đường cong xuống.",
+   "voice": "voice/curve.wav",
+   "dur": 11.133,
+   "model": "gemini-3.8-flash-tts"
+  },
+  {
+   "id": "split",
+   "text": "Và gần như toàn bộ thời gian đó là đọc log: 99 phần trăm. Checkpoint cắt phần này từ 0,40 xuống còn 0,16 giây.",
+   "voice": "voice/split.wav",
+   "dur": 8.458,
+   "model": "gemini-3.8-flash-tts"
+  },
+  {
+   "id": "speed",
+   "text": "Trên tập held-out, ở chế độ cold: checkpoint nhanh hơn 2,5 lần, thêm sắp xếp được 2,6 lần. Chưa đạt ngưỡng ba lần. Ở chế độ warm, con số là 10,7 và 11,4 lần.",
+   "voice": "voice/speed.wav",
+   "dur": 11.7,
+   "model": "gemini-3.8-flash-tts"
+  },
+  {
+   "id": "scan",
+   "text": "Sắp xếp gần như không làm planning nhanh hơn checkpoint. Nhưng nó giúp phần đọc dữ liệu: chỉ còn 10 trên 20.000 file, thời gian scan giảm từ 2,45 xuống 0,02 giây.",
+   "voice": "voice/scan.wav",
+   "dur": 10.275,
+   "model": "gemini-3.8-flash-tts"
+  },
+  {
+   "id": "cost",
+   "text": "Cái giá: checkpoint mất 0,48 giây và không ghi lại dữ liệu. Sắp xếp mất 8,75 giây và ghi lại 37,5 megabyte.",
+   "voice": "voice/cost.wav",
+   "dur": 8.901,
    "model": "gemini-3.8-flash-tts"
   },
   {
    "id": "fail",
-   "text": "Nhưng sắp xếp không phải phép màu. Lọc theo một cột chưa sắp xếp, engine vẫn phải mở 20.000 trên 20.000 file.",
+   "text": "Và sắp xếp không phải phép màu. Lọc theo cột amount chưa sắp xếp, engine vẫn phải mở 19.888 trên 20.000 file.",
    "voice": "voice/fail.wav",
-   "dur": 6.761,
+   "dur": 8.551,
+   "model": "gemini-3.8-flash-tts"
+  },
+  {
+   "id": "decide",
+   "text": "Kết luận: checkpoint rẻ và nên bật. Sắp xếp chỉ đáng khi truy vấn chủ yếu lọc theo đúng cột đó. Chưa kiểm thử: object storage, lọc nhiều cột, và ghi đồng thời.",
+   "voice": "voice/decide.wav",
+   "dur": 11.257,
    "model": "gemini-3.8-flash-tts"
   },
   {

@@ -3,9 +3,10 @@ import {AbsoluteFill, interpolate, random, spring, useCurrentFrame, useVideoConf
 import {C, SANS, MONO, clamp, Words, Sweep, Glitch, Counter, Kicker, Flash, FakeBadge, vn} from "./fx";
 
 export type M = {
-  fake: boolean; n_files: number; base: number; a: number; b: number; sa: number; sb: number;
-  sel_b: number; alt_sel: number; chart: Record<string, [number, number][]>;
-  fmt: Record<string, string>;
+  fake: boolean; local: string[]; n_files: number; base_c: number; sa_c: number; sb_c: number; sa_w: number; sb_w: number;
+  load: Record<string, number>; prune: Record<string, number>; scan_base: number; scan_b: number;
+  sel_base: number; sel_b: number; alt_sel: number; cost_a: number | null; cost_b: number | null; mb_b: number | null;
+  chart: Record<string, [number, number][]>; fmt: Record<string, string>;
 };
 export type P = {dur: number; v0: number; vd: number; m: M};
 const at = (p: P, x: number) => Math.round(p.v0 + x * p.vd);   // moment inside the voice line
@@ -90,7 +91,7 @@ export const Hook3: React.FC<P> = (p) => {
         })}
       </svg>
       <div style={{position: "absolute", top: 410, fontFamily: MONO, fontWeight: 700, fontSize: 110, color: C.ink}}>
-        <Counter to={p.m.base} start={p.v0} len={runEnd - p.v0} nd={2} />
+        <Counter to={p.m.base_c} start={p.v0} len={runEnd - p.v0} nd={2} />
         <span style={{fontSize: 50, color: C.dim}}> s</span>
       </div>
       <div style={{position: "absolute", top: 800}}>
@@ -205,8 +206,9 @@ export const Prob2: React.FC<P> = (p) => {
         axis="customer_id   0 ──────────────────────────────────────────────►  99.999" />
       <div style={{position: "absolute", right: 140, bottom: 100, textAlign: "right", opacity: interpolate(f, [zero, zero + 6], [0, 1], clamp)}}>
         <Glitch at={zero} len={16}>
-          <div style={{fontFamily: MONO, fontWeight: 700, fontSize: 92, color: C.rose}}>0 file bị loại</div>
+          <div style={{fontFamily: MONO, fontWeight: 700, fontSize: 92, color: C.rose}}>{p.m.fmt.sel_base} / {p.m.fmt.n_files}</div>
         </Glitch>
+        <div style={{fontFamily: SANS, fontSize: 34, color: C.dim}}>file vẫn được chọn (baseline, q_main)</div>
       </div>
     </AbsoluteFill>
   );
@@ -329,64 +331,6 @@ export const Exp: React.FC<P> = (p) => {
   );
 };
 
-/* ---------- RESULTS ---------- */
-export const Res: React.FC<P> = (p) => {
-  const f = useCurrentFrame(); const {fps} = useVideoConfig();
-  const W = 760, H = 540, X0 = 140, Y0 = 300, PADL = 120;
-  const all = Object.values(p.m.chart).flat();
-  const [xMin, xMax] = [Math.log10(Math.min(...all.map((d) => d[0]))), Math.log10(Math.max(...all.map((d) => d[0])))];
-  const [yMin, yMax] = [Math.log10(Math.min(...all.map((d) => d[1]))) - 0.2, Math.log10(Math.max(...all.map((d) => d[1]))) + 0.2];
-  const sx = (x: number) => ((Math.log10(x) - xMin) / (xMax - xMin)) * W;
-  const sy = (y: number) => H - ((Math.log10(y) - yMin) / (yMax - yMin)) * H;
-  const series = [["baseline", C.sBase], ["opt_a_checkpoint", C.sA], ["opt_b_sorted", C.sB]] as const;
-  const draw = interpolate(f, [p.v0, at(p, 0.3)], [0, 1], {...clamp, easing: Easing.inOut(Easing.cubic)});
-  const n1 = at(p, 0.42), n2 = at(p, 0.78);
-  const s1 = spring({frame: f - n1, fps, config: {damping: 12, stiffness: 170}});
-  const s2 = spring({frame: f - n2, fps, config: {damping: 12, stiffness: 170}});
-  const names: Record<number, string> = {100: "S1", 1000: "S2", 10000: "S3", 20000: "S4"};
-  return (
-    <AbsoluteFill>
-      <div style={{position: "absolute", left: 140, top: 150}}><Kicker text="KẾT QUẢ · p95 t_plan · q_main · cold" start={p.v0} /></div>
-      <svg width={PADL + W + 250} height={H + 80} style={{position: "absolute", left: X0, top: Y0}}><g transform={`translate(${PADL},0)`}>
-        {[1e-3, 1e-2, 1e-1, 1].filter((y) => Math.log10(y) >= yMin && Math.log10(y) <= yMax).map((y) => (
-          <g key={y}><line x1={0} x2={W} y1={sy(y)} y2={sy(y)} stroke="#1C2A48" strokeWidth={1.5} />
-            <text x={-16} y={sy(y) + 8} fill={C.dim} fontFamily={MONO} fontSize={22} textAnchor="end">{vn(y, y < 0.01 ? 3 : y < 0.1 ? 2 : 1)} s</text></g>
-        ))}
-        {series.map(([v, col]) => {
-          const pts = p.m.chart[v] || [];
-          const d = pts.map(([x, y], i) => `${i ? "L" : "M"}${sx(x)},${sy(y)}`).join(" ");
-          const len = 2000;
-          return (
-            <g key={v}>
-              <path d={d} stroke={col} strokeWidth={4} fill="none" strokeDasharray={len} strokeDashoffset={len * (1 - draw)}
-                style={{filter: `drop-shadow(0 0 10px ${col})`}} />
-              {pts.map(([x, y], i) => <circle key={i} cx={sx(x)} cy={sy(y)} r={8} fill={col} stroke={C.bg} strokeWidth={3}
-                opacity={draw > (i + 0.5) / pts.length ? 1 : 0} />)}
-              {pts.length > 0 && <text x={sx(pts[pts.length - 1][0]) + 18} y={sy(pts[pts.length - 1][1]) + 8} fill={C.ink}
-                fontFamily={MONO} fontSize={24} opacity={draw > 0.95 ? 1 : 0}>{v}</text>}
-            </g>
-          );
-        })}
-        {Object.entries(names).map(([x, s]) => <text key={x} x={sx(+x)} y={H + 50} fill={C.dim} fontFamily={MONO} fontSize={26} textAnchor="middle">{s}</text>)}
-      </g></svg>
-      <div style={{position: "absolute", left: X0 + PADL, top: Y0 + H + 80, fontFamily: SANS, fontSize: 24, color: C.dim}}>
-        trục log · thấp hơn là nhanh hơn</div>
-      <div style={{position: "absolute", right: 130, top: 300, display: "flex", flexDirection: "column", gap: 60, alignItems: "flex-end"}}>
-        {[[s1, p.m.sa, "checkpoint", C.sA], [s2, p.m.sb, "checkpoint + sort", C.sB]].map(([s, v, l, col], i) => (
-          <div key={i} style={{textAlign: "right", opacity: s as number, transform: `scale(${1.6 - 0.6 * (s as number)})`, transformOrigin: "right center"}}>
-            <div style={{fontFamily: MONO, fontWeight: 700, fontSize: 170, color: C.ink, lineHeight: 1, textShadow: `0 0 60px ${col}`}}>
-              {vn(v as number, 1)}×</div>
-            <div style={{display: "flex", gap: 14, justifyContent: "flex-end", alignItems: "center", fontFamily: SANS, fontSize: 34, color: C.dim}}>
-              <div style={{width: 28, height: 6, borderRadius: 3, background: col as string}} />{l as string}</div>
-          </div>
-        ))}
-      </div>
-      <Flash at={n1} strength={0.25} /><Flash at={n2} strength={0.4} />
-      <FakeBadge on={p.m.fake} />
-    </AbsoluteFill>
-  );
-};
-
 /* ---------- FAILURE ---------- */
 export const Fail: React.FC<P> = (p) => {
   const f = useCurrentFrame();
@@ -424,6 +368,260 @@ export const Outro: React.FC<P> = (p) => {
         <div style={{fontFamily: MONO, fontSize: 30, color: C.dim, letterSpacing: 6, marginTop: 14}}>Phong · Hùng · Phú · Đạt · Vinh</div>
       </div>
       <Flash at={t2} strength={0.3} />
+    </AbsoluteFill>
+  );
+};
+
+/* ---------- MEASURE ---------- */
+export const Measure: React.FC<P> = (p) => {
+  const f = useCurrentFrame(); const {fps} = useVideoConfig();
+  const box = (t: string, sub: string, col: string, d: number) => {
+    const k = spring({frame: f - d, fps, config: {damping: 15}});
+    return <div style={{opacity: k, transform: `translateY(${(1 - k) * 40}px)`, border: `2px solid ${col}`, borderRadius: 18,
+      padding: "26px 36px", background: `${col}14`, minWidth: 420}}>
+      <div style={{fontFamily: MONO, fontWeight: 700, fontSize: 58, color: col}}>{t}</div>
+      <div style={{fontFamily: SANS, fontSize: 30, color: C.dim, marginTop: 6}}>{sub}</div></div>;
+  };
+  const chip = (t: string, sub: string, d: number) => (
+    <div style={{opacity: interpolate(f, [d, d + 10], [0, 1], clamp), display: "flex", gap: 22, alignItems: "baseline"}}>
+      <span style={{fontFamily: MONO, fontWeight: 700, fontSize: 44, color: C.ink, letterSpacing: 4}}>{t}</span>
+      <span style={{fontFamily: SANS, fontSize: 32, color: C.dim}}>{sub}</span></div>);
+  return (
+    <AbsoluteFill style={center}>
+      <div style={{position: "absolute", left: 140, top: 150}}><Kicker text="CÁCH ĐO" start={p.v0} /></div>
+      <div style={{display: "flex", alignItems: "center", gap: 34, marginTop: -80}}>
+        <span style={{fontFamily: MONO, fontWeight: 700, fontSize: 64, color: C.ink, opacity: interpolate(f, [p.v0, p.v0 + 10], [0, 1], clamp)}}>t_plan =</span>
+        {box("t_load", "đọc log → danh sách file", C.blue, at(p, 0.05))}
+        <span style={{fontFamily: MONO, fontSize: 64, color: C.dim, opacity: interpolate(f, [at(p, 0.25), at(p, 0.3)], [0, 1], clamp)}}>+</span>
+        {box("t_prune", "lọc file bằng min/max", C.amber, at(p, 0.28))}
+      </div>
+      <div style={{position: "absolute", bottom: 150, display: "flex", flexDirection: "column", gap: 22, alignItems: "flex-start"}}>
+        {chip("COLD", "mỗi lần một tiến trình Python mới", at(p, 0.55))}
+        {chip("WARM", "cùng tiến trình, bỏ lần chạy đầu", at(p, 0.78))}
+      </div>
+    </AbsoluteFill>
+  );
+};
+
+/* ---------- RESULT 1: CURVE ---------- */
+export const Curve: React.FC<P> = (p) => {
+  const f = useCurrentFrame();
+  const W = 900, H = 560, X0 = 140, Y0 = 290, PADL = 130;
+  const all = Object.values(p.m.chart).flat();
+  const xs = all.map((d) => d[0]), ys = all.map((d) => d[1]);
+  const [xMin, xMax] = [Math.log10(Math.min(...xs)), Math.log10(Math.max(...xs))];
+  const [yMin, yMax] = [Math.log10(Math.min(...ys)) - 0.15, Math.log10(Math.max(...ys)) + 0.15];
+  const sx = (x: number) => xMax === xMin ? W / 2 : ((Math.log10(x) - xMin) / (xMax - xMin)) * W;
+  const sy = (y: number) => H - ((Math.log10(y) - yMin) / (yMax - yMin)) * H;
+  const series = [["baseline", C.sBase], ["opt_a_checkpoint", C.sA], ["opt_b_sorted", C.sB]] as const;
+  const draw = interpolate(f, [p.v0, at(p, 0.55)], [0, 1], {...clamp, easing: Easing.inOut(Easing.cubic)});
+  const names: Record<number, string> = {100: "S1", 1000: "S2", 10000: "S3", 20000: "S4"};
+  const ticks = [1e-3, 3e-3, 1e-2, 3e-2, 0.1, 0.2, 0.3, 0.5, 1].filter((y) => Math.log10(y) >= yMin && Math.log10(y) <= yMax);
+  // end-of-line labels, pushed apart so they never overlap (>= 34px)
+  const ends = series.map(([v]) => [v, sy((p.m.chart[v] || [[1, 1]]).slice(-1)[0][1])] as [string, number]).sort((a, b) => a[1] - b[1]);
+  const labelY: Record<string, number> = {};
+  ends.forEach(([v, y], i) => { labelY[v] = i ? Math.max(y, labelY[ends[i - 1][0]] + 34) : y; });
+  return (
+    <AbsoluteFill>
+      <div style={{position: "absolute", left: 140, top: 150}}><Kicker text="KẾT QUẢ 1 · p95 t_plan THEO SỐ FILE · q_main · cold" start={p.v0} /></div>
+      <svg width={PADL + W + 260} height={H + 80} style={{position: "absolute", left: X0, top: Y0}}>
+        <g transform={`translate(${PADL},0)`}>
+          {ticks.map((y) => <g key={y}><line x1={0} x2={W} y1={sy(y)} y2={sy(y)} stroke="#1C2A48" strokeWidth={1.5} />
+            <text x={-16} y={sy(y) + 8} fill={C.dim} fontFamily={MONO} fontSize={22} textAnchor="end">{vn(y, y < 0.01 ? 3 : y < 0.1 ? 2 : 1)} s</text></g>)}
+          {series.map(([v, col]) => {
+            const pts = p.m.chart[v] || [];
+            const d = pts.map(([x, y], i) => `${i ? "L" : "M"}${sx(x)},${sy(y)}`).join(" ");
+            return (
+              <g key={v}>
+                <path d={d} stroke={col} strokeWidth={4} fill="none" strokeDasharray={2400} strokeDashoffset={2400 * (1 - draw)}
+                  style={{filter: `drop-shadow(0 0 10px ${col})`}} />
+                {pts.map(([x, y], i) => {
+                  const local = p.m.local.includes(names[x]);
+                  return <circle key={i} cx={sx(x)} cy={sy(y)} r={9} fill={local ? C.bg : col} stroke={col} strokeWidth={3}
+                    opacity={draw > (i + 0.5) / pts.length ? 1 : 0} />;
+                })}
+                {pts.length > 0 && <text x={sx(pts[pts.length - 1][0]) + 20} y={labelY[v] + 8} fill={C.ink}
+                  fontFamily={MONO} fontSize={24} opacity={draw > 0.95 ? 1 : 0}>{v}</text>}
+              </g>
+            );
+          })}
+          {Object.entries(names).filter(([x]) => xs.includes(+x)).map(([x, n]) => <text key={x} x={sx(+x)} y={H + 46} fill={C.dim} fontFamily={MONO} fontSize={26} textAnchor="middle">{n}</text>)}
+        </g>
+      </svg>
+      <div style={{position: "absolute", left: X0 + PADL, top: Y0 + H + 80, fontFamily: SANS, fontSize: 24, color: C.dim}}>
+        trục log · {p.m.local.length ? `${p.m.local.join(", ")}: đo tạm trên cùng một máy (máy Phong), chưa phải số chính thức` : "thấp hơn là nhanh hơn"}</div>
+      <div style={{position: "absolute", right: 130, top: 330, textAlign: "right", opacity: interpolate(f, [at(p, 0.45), at(p, 0.55)], [0, 1], clamp)}}>
+        <div style={{fontFamily: SANS, fontSize: 30, color: C.dim}}>baseline · {p.m.fmt.curve_n_lo} → {p.m.fmt.curve_n_hi} file</div>
+        <div style={{fontFamily: MONO, fontWeight: 700, fontSize: 84, color: C.ink, marginTop: 10}}>{p.m.fmt.curve_lo} s</div>
+        <div style={{fontFamily: MONO, fontSize: 60, color: C.sBase}}>↓</div>
+        <div style={{fontFamily: MONO, fontWeight: 700, fontSize: 84, color: C.sBase}}>{p.m.fmt.curve_hi} s</div>
+      </div>
+      <FakeBadge on={p.m.fake} />
+    </AbsoluteFill>
+  );
+};
+
+/* ---------- RESULT 2: LOAD vs PRUNE ---------- */
+export const Split: React.FC<P> = (p) => {
+  const f = useCurrentFrame();
+  const V = [["baseline", "baseline"], ["opt_a_checkpoint", "checkpoint"], ["opt_b_sorted", "checkpoint + sort"]] as const;
+  const mx = Math.max(...V.map(([v]) => p.m.load[v] + p.m.prune[v]));
+  const BW = 1100;
+  const shrink = interpolate(f, [at(p, 0.55), at(p, 0.8)], [0, 1], {...clamp, easing: Easing.inOut(Easing.cubic)});
+  return (
+    <AbsoluteFill>
+      <div style={{position: "absolute", left: 140, top: 150}}><Kicker text="KẾT QUẢ 2 · t_plan = t_load + t_prune · S4 · cold · p95" start={p.v0} /></div>
+      <div style={{position: "absolute", left: 140, top: 280, fontFamily: MONO, fontWeight: 700, fontSize: 110, color: C.blue,
+        opacity: interpolate(f, [at(p, 0.1), at(p, 0.2)], [0, 1], clamp)}}>{p.m.fmt.load_share}%
+        <span style={{fontFamily: SANS, fontWeight: 400, fontSize: 40, color: C.dim}}>  thời gian planning là đọc log</span></div>
+      <div style={{position: "absolute", left: 140, top: 480, display: "flex", flexDirection: "column", gap: 44}}>
+        {V.map(([v, label], i) => {
+          const isBase = i === 0;
+          const g = isBase ? interpolate(f, [p.v0, p.v0 + 24], [0, 1], {...clamp, easing: Easing.out(Easing.cubic)}) : shrink;
+          const lw = (p.m.load[v] / mx) * BW * g, pw = Math.max(6, (p.m.prune[v] / mx) * BW) * g;
+          return (
+            <div key={v} style={{display: "flex", alignItems: "center", gap: 30, opacity: isBase ? 1 : interpolate(f, [at(p, 0.5), at(p, 0.56)], [0, 1], clamp)}}>
+              <div style={{width: 330, fontFamily: MONO, fontSize: 30, color: C.ink, textAlign: "right"}}>{label}</div>
+              <div style={{display: "flex", gap: 4}}>
+                <div style={{width: lw, height: 56, background: C.blue, borderRadius: "8px 0 0 8px", boxShadow: `0 0 24px ${C.blue}66`}} />
+                <div style={{width: pw, height: 56, background: C.amber, borderRadius: "0 8px 8px 0"}} />
+              </div>
+              <div style={{fontFamily: MONO, fontSize: 30, color: C.dim, opacity: g}}>{vn(p.m.load[v] + p.m.prune[v], 3)} s</div>
+            </div>
+          );
+        })}
+      </div>
+      <div style={{position: "absolute", left: 500, bottom: 120, display: "flex", gap: 40, fontFamily: SANS, fontSize: 28, color: C.dim}}>
+        <span><span style={{display: "inline-block", width: 26, height: 14, background: C.blue, marginRight: 10}} />t_load · đọc log</span>
+        <span><span style={{display: "inline-block", width: 26, height: 14, background: C.amber, marginRight: 10}} />t_prune · lọc min/max</span>
+      </div>
+      <FakeBadge on={p.m.fake} />
+    </AbsoluteFill>
+  );
+};
+
+/* ---------- RESULT 3: SPEEDUP vs 3x ---------- */
+export const Speed: React.FC<P> = (p) => {
+  const f = useCurrentFrame(); const {fps} = useVideoConfig();
+  const MAXX = Math.max(12, Math.ceil(Math.max(p.m.sa_w, p.m.sb_w) + 1)), BW = 1000, X = 520;
+  const rows = [["cold", "checkpoint", p.m.sa_c, C.sA, 0.05], ["cold", "checkpoint + sort", p.m.sb_c, C.sB, 0.12],
+                ["warm", "checkpoint", p.m.sa_w, C.sA, 0.62], ["warm", "checkpoint + sort", p.m.sb_w, C.sB, 0.7]] as const;
+  const hitC = p.m.sb_c >= 3, hitW = p.m.sb_w >= 3;
+  const v1 = at(p, 0.35), v2 = at(p, 0.85);
+  const st1 = spring({frame: f - v1, fps, config: {damping: 10, stiffness: 180}});
+  const st2 = spring({frame: f - v2, fps, config: {damping: 10, stiffness: 180}});
+  return (
+    <AbsoluteFill>
+      <div style={{position: "absolute", left: 140, top: 150}}><Kicker text="KẾT QUẢ 3 · PlanningSpeedup · S4 HELD-OUT · q_main" start={p.v0} /></div>
+      <div style={{position: "absolute", left: X + (3 / MAXX) * BW, top: 260, bottom: 200, width: 3, background: C.rose, boxShadow: `0 0 18px ${C.rose}`,
+        opacity: interpolate(f, [p.v0, p.v0 + 10], [0, 1], clamp)}} />
+      <div style={{position: "absolute", left: X + (3 / MAXX) * BW - 70, top: 222, fontFamily: MONO, fontSize: 26, color: C.rose}}>ngưỡng 3×</div>
+      {rows.map(([mode, label, v, col, t], i) => {
+        const s0 = at(p, t as number);
+        const g = interpolate(f, [s0, s0 + 22], [0, 1], {...clamp, easing: Easing.out(Easing.cubic)});
+        const y = 300 + i * 120 + (i >= 2 ? 40 : 0);
+        return (
+          <React.Fragment key={i}>
+            <div style={{position: "absolute", left: 140, top: y + 6, width: 360, textAlign: "right", opacity: g}}>
+              <span style={{fontFamily: MONO, fontWeight: 700, fontSize: 30, color: C.ink, letterSpacing: 3}}>{(mode as string).toUpperCase()}</span>
+              <span style={{fontFamily: SANS, fontSize: 26, color: C.dim}}> · {label as string}</span></div>
+            <div style={{position: "absolute", left: X, top: y, height: 56, width: ((v as number) / MAXX) * BW * g, background: col as string,
+              borderRadius: 8, boxShadow: `0 0 26px ${col}77`}} />
+            <div style={{position: "absolute", left: X + ((v as number) / MAXX) * BW * g + 20, top: y + 2, fontFamily: MONO, fontWeight: 700,
+              fontSize: 46, color: C.ink, opacity: g}}>{vn((v as number) * g, 1)}×</div>
+          </React.Fragment>
+        );
+      })}
+      <div style={{position: "absolute", right: 130, top: 330, transform: `rotate(-6deg) scale(${2 - st1})`, opacity: st1,
+        border: `5px solid ${hitC ? C.blue : C.rose}`, color: hitC ? C.blue : C.rose, fontFamily: MONO, fontWeight: 700, fontSize: 40, padding: "8px 22px"}}>
+        COLD: {hitC ? "ĐẠT" : "CHƯA ĐẠT"}</div>
+      <div style={{position: "absolute", right: 130, top: 800, transform: `rotate(-6deg) scale(${2 - st2})`, opacity: st2,
+        border: `5px solid ${hitW ? C.blue : C.rose}`, color: hitW ? C.blue : C.rose, fontFamily: MONO, fontWeight: 700, fontSize: 40, padding: "8px 22px"}}>
+        WARM: {hitW ? "ĐẠT" : "CHƯA ĐẠT"}</div>
+      <Flash at={v1} strength={0.2} /><Flash at={v2} strength={0.25} />
+      <FakeBadge on={p.m.fake} />
+    </AbsoluteFill>
+  );
+};
+
+/* ---------- SCAN ---------- */
+export const Scan: React.FC<P> = (p) => {
+  const f = useCurrentFrame();
+  const t1 = at(p, 0.4), t2 = at(p, 0.7);
+  const row = (label: string, from: string, to: string, d: number, ratio: number) => {
+    const g = interpolate(f, [d, d + 26], [0, 1], {...clamp, easing: Easing.inOut(Easing.cubic)});
+    return (
+      <div style={{opacity: interpolate(f, [d - 10, d], [0, 1], clamp), display: "flex", flexDirection: "column", gap: 16}}>
+        <div style={{fontFamily: SANS, fontSize: 34, color: C.dim}}>{label}</div>
+        <div style={{display: "flex", alignItems: "center", gap: 30}}>
+          <div style={{width: 1000, height: 50, background: "#15213C", borderRadius: 8, overflow: "hidden"}}>
+            <div style={{width: `${100 - (100 - ratio * 100) * g}%`, height: "100%", background: `linear-gradient(90deg, ${C.sB}, ${C.amber})`, boxShadow: `0 0 30px ${C.amber}66`}} />
+          </div>
+          <div style={{fontFamily: MONO, fontWeight: 700, fontSize: 56, color: C.ink, width: 520}}>
+            <span style={{color: C.dim}}>{from}</span> → <span style={{color: C.amber}}>{to}</span></div>
+        </div>
+      </div>
+    );
+  };
+  return (
+    <AbsoluteFill>
+      <div style={{position: "absolute", left: 140, top: 150}}><Kicker text="SORT GIÚP Ở ĐÂU? · S4 · q_main · cold" start={p.v0} /></div>
+      <div style={{position: "absolute", left: 140, top: 270}}>
+        <Words text="Planning: gần bằng checkpoint." start={p.v0} size={52} weight={600} color={C.dim} align="left" />
+      </div>
+      <div style={{position: "absolute", left: 140, top: 420, display: "flex", flexDirection: "column", gap: 70}}>
+        {row("file được chọn (baseline → sort)", p.m.fmt.sel_base, p.m.fmt.sel_b, t1, p.m.sel_b / Math.max(1, p.m.sel_base))}
+        {row("p95 t_scan (giây)", p.m.fmt.scan_base, p.m.fmt.scan_b, t2, p.m.scan_b / p.m.scan_base)}
+      </div>
+      <Flash at={t2 + 26} strength={0.2} />
+      <FakeBadge on={p.m.fake} />
+    </AbsoluteFill>
+  );
+};
+
+/* ---------- COST ---------- */
+export const Cost: React.FC<P> = (p) => {
+  const f = useCurrentFrame(); const {fps} = useVideoConfig();
+  const card = (title: string, sec: string, mb: string, col: string, d: number) => {
+    const k = spring({frame: f - d, fps, config: {damping: 14}});
+    return (
+      <div style={{opacity: k, transform: `translateY(${(1 - k) * 60}px)`, width: 700, border: `2px solid ${col}`, borderRadius: 22,
+        padding: "40px 48px", background: `${col}12`}}>
+        <div style={{fontFamily: MONO, fontSize: 36, color: col, letterSpacing: 3}}>{title}</div>
+        <div style={{fontFamily: MONO, fontWeight: 700, fontSize: 120, color: C.ink, marginTop: 12}}>{sec}<span style={{fontSize: 50, color: C.dim}}> s</span></div>
+        <div style={{fontFamily: SANS, fontSize: 36, color: C.dim}}>ghi lại <b style={{color: C.ink}}>{mb}</b> dữ liệu</div>
+      </div>
+    );
+  };
+  return (
+    <AbsoluteFill style={{...center, flexDirection: "row", gap: 70}}>
+      <div style={{position: "absolute", left: 140, top: 150}}><Kicker text="CHI PHÍ TỐI ƯU MỘT LẦN · S4" start={p.v0} /></div>
+      {card("CHECKPOINT", p.m.fmt.cost_a, "0 MB", C.sA, at(p, 0.05))}
+      {card("SORT + CHECKPOINT", p.m.fmt.cost_b, `${p.m.fmt.mb_b} MB`, C.sB, at(p, 0.5))}
+      <FakeBadge on={p.m.fake} />
+    </AbsoluteFill>
+  );
+};
+
+/* ---------- DECISION ---------- */
+export const Decide: React.FC<P> = (p) => {
+  const f = useCurrentFrame(); const {fps} = useVideoConfig();
+  const items = [["Checkpoint", "rẻ, nên bật", C.sA, 0.05], ["Sort theo cột lọc", "chỉ khi truy vấn lọc đúng cột đó", C.sB, 0.25],
+                 ["Chưa kiểm thử", "object storage (S3) · lọc nhiều cột · ghi đồng thời", C.rose, 0.55]] as const;
+  return (
+    <AbsoluteFill>
+      <div style={{position: "absolute", left: 140, top: 150}}><Kicker text="KẾT LUẬN" start={p.v0} /></div>
+      <div style={{position: "absolute", left: 140, top: 280, display: "flex", flexDirection: "column", gap: 46}}>
+        {items.map(([t, sub, col, d]) => {
+          const k = spring({frame: f - at(p, d as number), fps, config: {damping: 15}});
+          return <div key={t as string} style={{opacity: k, transform: `translateX(${(1 - k) * -80}px)`, display: "flex", gap: 36, alignItems: "center"}}>
+            <div style={{width: 14, height: 120, background: col as string, borderRadius: 7, boxShadow: `0 0 24px ${col}`}} />
+            <div>
+              <div style={{fontFamily: SANS, fontWeight: 800, fontSize: 74, color: C.ink}}>{t as string}</div>
+              <div style={{fontFamily: SANS, fontSize: 40, color: C.dim}}>{sub as string}</div>
+            </div></div>;
+        })}
+      </div>
     </AbsoluteFill>
   );
 };

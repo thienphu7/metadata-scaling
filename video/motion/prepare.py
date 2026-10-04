@@ -9,7 +9,7 @@ Voice clips are cached by text hash, so re-running only calls the API for change
 Key: GEMINI_API_KEY env or `gemini_key=` in the repo's .env (gitignored).
 Optional env: GEMINI_TTS_MODELS (fallback chain "model:rpm,..."), GEMINI_VOICE (default Charon).
 --primary-only: regenerate clips that a fallback model produced, using only the primary model."""
-import argparse, base64, glob, hashlib, json, os, subprocess, sys, time, urllib.request, urllib.error
+import argparse, base64, glob, http.client, hashlib, json, os, subprocess, sys, time, urllib.request, urllib.error
 import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -24,52 +24,97 @@ def vn(x, nd):
     return s.replace(",", "_").replace(".", ",").replace("_", ".")
 
 def metrics(fake, state):
-    rdir = os.path.join(ROOT, "results")
+    """Every number shown or spoken comes from here. S4 (held-out) from results/; the chart's other
+    states come from results/ when the owner has pushed them, else from video/motion/assumed/
+    (local runs on Phong's machine, labelled as such in the video)."""
+    rdir = os.path.join(ROOT, "results"); adir = os.path.join(HERE, "assumed")
     if fake:
         df, costs, state = pd.read_csv(os.path.join(rdir, "results_fake.csv")), None, "S4"
-        allres = df
+        curve_df, local = df, []
     else:
         df = pd.read_csv(os.path.join(rdir, f"results_{state}.csv"))
         cp = os.path.join(rdir, f"costs_{state}.csv")
         costs = pd.read_csv(cp) if os.path.exists(cp) else None
-        allres = pd.concat([pd.read_csv(f) for f in sorted(glob.glob(os.path.join(rdir, "results_S*.csv")))])
-    s = df[(df.state == state) & (df["mode"] == "cold")]
-    sel = lambda v, q: s[(s.variant == v) & (s["query"] == q)]
-    base, a, b = (sel(v, "q_main").t_plan.quantile(0.95) for v in ["baseline", "opt_a_checkpoint", "opt_b_sorted"])
-    n_files = int(s.n_files_total.iloc[0])
-    m = dict(fake=fake, state=state, n_files=n_files, base=base, a=a, b=b, sa=base / a, sb=base / b,
-             sel_b=int(sel("opt_b_sorted", "q_main").files_selected.median()),
-             alt_sel=int(sel("opt_b_sorted", "q_alt").files_selected.median()),
-             cost_b=None)
+        parts, local = [df], []
+        for st in ["S1", "S2", "S3"]:
+            off, loc = os.path.join(rdir, f"results_{st}.csv"), os.path.join(adir, f"results_{st}.csv")
+            if os.path.exists(off): parts.append(pd.read_csv(off))
+            elif os.path.exists(loc): parts.append(pd.read_csv(loc)); local.append(st)
+        curve_df = pd.concat(parts)
+    s = df[df.state == state]
+    def p95(v, q="q_main", mode="cold", col="t_plan"):
+        return float(s[(s.variant == v) & (s["query"] == q) & (s["mode"] == mode)][col].quantile(0.95))
+    def med(v, q, col="files_selected"):
+        return int(s[(s.variant == v) & (s["query"] == q) & (s["mode"] == "cold")][col].median())
+    V = ["baseline", "opt_a_checkpoint", "opt_b_sorted"]
+    m = dict(fake=fake, state=state, n_files=int(s.n_files_total.iloc[0]), local=local)
+    for mode, k in [("cold", "c"), ("warm", "w")]:
+        b, a, o = (p95(v, mode=mode) for v in V)
+        m.update({f"base_{k}": b, f"a_{k}": a, f"b_{k}": o, f"sa_{k}": b / a, f"sb_{k}": b / o})
+    m["load"] = {v: p95(v, col="t_load") for v in V}
+    m["prune"] = {v: p95(v, col="t_prune") for v in V}
+    m["scan_base"], m["scan_b"] = p95("baseline", col="t_scan"), p95("opt_b_sorted", col="t_scan")
+    m["sel_base"], m["sel_b"], m["alt_sel"] = med("baseline", "q_main"), med("opt_b_sorted", "q_main"), med("opt_b_sorted", "q_alt")
+    m["rows_main"] = int(s[(s["query"] == "q_main")].rows.iloc[0])
+    m["rows_ok"] = bool((s.rows == s.expected_rows).all())
+    m["cost_a"] = m["cost_b"] = m["mb_b"] = None
     if costs is not None:
-        c = costs.groupby("variant").wall_time_s.sum()
-        m["cost_b"] = float(c.get("opt_b_sorted")) if "opt_b_sorted" in c else None
-    g = allres[(allres["mode"] == "cold") & (allres["query"] == "q_main")]
+        c = costs.set_index("variant")
+        m["cost_a"], m["cost_b"] = float(c.loc["opt_a_checkpoint", "wall_time_s"]), float(c.loc["opt_b_sorted", "wall_time_s"])
+        m["mb_b"] = float(c.loc["opt_b_sorted", "bytes_rewritten"]) / 1e6
+    # scaling curve must compare states measured on ONE machine: if some states are local runs,
+    # plot only those (S4 official ran on a different machine)
+    if local:
+        curve_df = curve_df[curve_df.state.isin(local)]
+    m["curve_hw_note"] = f"{', '.join(local)} đo trên cùng một máy (máy Phong)" if local else ""
+    g = curve_df[(curve_df["mode"] == "cold") & (curve_df["query"] == "q_main")]
     g = g.groupby(["variant", "n_files_total"]).t_plan.quantile(0.95).reset_index()
-    m["chart"] = {v: [[int(r.n_files_total), float(r.t_plan)] for r in g[g.variant == v].sort_values("n_files_total").itertuples()]
-                  for v in ["baseline", "opt_a_checkpoint", "opt_b_sorted"]}
-    m["fmt"] = dict(n_files=vn(n_files, 0), base=vn(base, 2), a=vn(a, 2), b=vn(b, 2),
-                    sa=vn(base / a, 1), sb=vn(base / b, 1), sel_b=vn(m["sel_b"], 0), alt_sel=vn(m["alt_sel"], 0))
+    m["chart"] = {v: [[int(r.n_files_total), float(r.t_plan)] for r in g[g.variant == v].sort_values("n_files_total").itertuples()] for v in V}
+    cb = m["chart"]["baseline"]
+    m["curve_lo"], m["curve_hi"], m["curve_n_lo"], m["curve_n_hi"] = cb[0][1], cb[-1][1], cb[0][0], cb[-1][0]
+    f2 = lambda x: vn(x, 2)
+    m["fmt"] = dict(n_files=vn(m["n_files"], 0), base_c=f2(m["base_c"]), a_c=f2(m["a_c"]), b_c=f2(m["b_c"]),
+                    sa_c=vn(m["sa_c"], 1), sb_c=vn(m["sb_c"], 1), sa_w=vn(m["sa_w"], 1), sb_w=vn(m["sb_w"], 1),
+                    base_w=f2(m["base_w"]), a_w=vn(m["a_w"], 3), load_base=f2(m["load"]["baseline"]),
+                    load_a=f2(m["load"]["opt_a_checkpoint"]), prune_base=vn(m["prune"]["baseline"], 4),
+                    scan_base=f2(m["scan_base"]), scan_b=f2(m["scan_b"]), sel_base=vn(m["sel_base"], 0),
+                    sel_b=vn(m["sel_b"], 0), alt_sel=vn(m["alt_sel"], 0), rows_main=vn(m["rows_main"], 0),
+                    curve_lo=f2(m["curve_lo"]), curve_hi=f2(m["curve_hi"]), curve_n_lo=vn(m["curve_n_lo"], 0), curve_n_hi=vn(m["curve_n_hi"], 0),
+                    cost_a=vn(m["cost_a"], 2) if m["cost_a"] is not None else "—",
+                    cost_b=vn(m["cost_b"], 2) if m["cost_b"] is not None else "—",
+                    mb_b=vn(m["mb_b"], 1) if m["mb_b"] is not None else "—",
+                    load_share=vn(100 * m["load"]["baseline"] / m["base_c"], 0))
     return m
 
 def narration(m):
     f = m["fmt"]
-    return [
+    hyp_c = m["sb_c"] >= 3
+    lines = [
         ("hook_1", "Một triệu dòng dữ liệu."),
         ("hook_2", f"{f['n_files']} file."),
-        ("hook_3", f"Và engine mất {f['base']} giây... chỉ để lên kế hoạch. Chưa đọc một dòng nào."),
+        ("hook_3", f"Và engine mất {f['base_c']} giây... chỉ để lên kế hoạch. Chưa đọc một dòng nào."),
         ("title", "Đây là câu chuyện về metadata. Nhóm 7: Metadata Scaling và Query Planning."),
         ("prob_1", "Mỗi lần mở bảng, engine phải đọc lại toàn bộ transaction log. Một nghìn commit. Hai mươi nghìn bản ghi file."),
-        ("prob_2", "Dữ liệu lại nằm ngẫu nhiên, nên khoảng min max của mọi file đều chồng lên nhau. Không file nào bị loại."),
+        ("prob_2", "Dữ liệu lại nằm ngẫu nhiên, nên khoảng min max của các file chồng lên nhau. Lọc bằng min max loại được rất ít file."),
         ("hypo", "Giả thuyết: thời gian planning tăng theo số file và số commit, không theo dung lượng. Và có thể giảm ít nhất ba lần."),
-        ("meth_1", "Cách thứ nhất: checkpoint. Gộp toàn bộ log thành một file duy nhất."),
-        ("meth_2", f"Cách thứ hai: sắp xếp dữ liệu theo cột lọc. Mỗi file giữ một khoảng hẹp, và chỉ còn {f['sel_b']} trên {f['n_files']} file được chọn."),
-        ("exp", "Cùng một triệu dòng, chia từ một trăm đến hai mươi nghìn file. Mỗi phép đo chạy mười lần. Trạng thái lớn nhất bị khóa lại, chỉ chạy khi phương pháp đã chốt."),
-        ("res", ("Số liệu minh họa. " if m["fake"] else "") +
-                f"Trên tập held-out: checkpoint nhanh hơn {f['sa']} lần. Checkpoint cộng sắp xếp: nhanh hơn {f['sb']} lần."),
-        ("fail", f"Nhưng sắp xếp không phải phép màu. Lọc theo một cột chưa sắp xếp, engine vẫn phải mở {f['alt_sel']} trên {f['n_files']} file."),
+        ("meth_1", "Cách thứ nhất: checkpoint. Gộp toàn bộ log thành một file duy nhất, không đụng tới dữ liệu."),
+        ("meth_2", "Cách thứ hai: sắp xếp lại dữ liệu theo cột lọc, giữ nguyên số file, rồi checkpoint. Mỗi file chỉ còn giữ một khoảng hẹp."),
+        ("exp", "Cùng một triệu dòng, chia từ một trăm đến hai mươi nghìn file. Ba truy vấn, mười lần mỗi tổ hợp. Trạng thái lớn nhất bị khóa lại, chỉ chạy khi phương pháp đã chốt."),
+        ("measure", "Thời gian planning gồm hai phần: đọc log để biết danh sách file, và lọc file bằng min max. Cold là mỗi lần một tiến trình mới. Warm là chạy lại trong cùng tiến trình."),
+        ("curve", ("Trên cùng một máy, " if m["local"] else "") + f"từ {f['curve_n_lo']} đến {f['curve_n_hi']} file, p chín mươi lăm planning của baseline tăng từ {f['curve_lo']} lên {f['curve_hi']} giây. Cùng dữ liệu, chỉ khác số file. Checkpoint kéo đường cong xuống."),
+        ("split", f"Và gần như toàn bộ thời gian đó là đọc log: {f['load_share']} phần trăm. Checkpoint cắt phần này từ {f['load_base']} xuống còn {f['load_a']} giây."),
+        ("speed", (f"Trên tập held-out, ở chế độ cold: checkpoint nhanh hơn {f['sa_c']} lần, thêm sắp xếp được {f['sb_c']} lần. "
+                   + ("Đạt ngưỡng ba lần." if hyp_c else "Chưa đạt ngưỡng ba lần.")
+                   + f" Ở chế độ warm, con số là {f['sa_w']} và {f['sb_w']} lần.")),
+        ("scan", f"Sắp xếp gần như không làm planning nhanh hơn checkpoint. Nhưng nó giúp phần đọc dữ liệu: chỉ còn {f['sel_b']} trên {f['n_files']} file, thời gian scan giảm từ {f['scan_base']} xuống {f['scan_b']} giây."),
+        ("cost", f"Cái giá: checkpoint mất {f['cost_a']} giây và không ghi lại dữ liệu. Sắp xếp mất {f['cost_b']} giây và ghi lại {f['mb_b']} megabyte."),
+        ("fail", f"Và sắp xếp không phải phép màu. Lọc theo cột amount chưa sắp xếp, engine vẫn phải mở {f['alt_sel']} trên {f['n_files']} file."),
+        ("decide", "Kết luận: checkpoint rẻ và nên bật. Sắp xếp chỉ đáng khi truy vấn chủ yếu lọc theo đúng cột đó. Chưa kiểm thử: object storage, lọc nhiều cột, và ghi đồng thời."),
         ("outro", "Metadata cũng là dữ liệu, và nó cần được chăm sóc. Nhóm 7. Cảm ơn đã theo dõi."),
     ]
+    if m["fake"]:
+        lines = [(k, ("Số liệu minh họa. " + t) if k == "speed" else t) for k, t in lines]
+    return lines
 
 def sh(cmd, **kw):
     subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, **kw)
@@ -121,7 +166,7 @@ def gemini_tts(text, wav, key):
                 if e.code in (400, 404):
                     _cool[model] = float("inf"); print(f"    {model}: HTTP {e.code} {msg} -> skipped"); continue
                 raise
-            except (KeyError, IndexError, urllib.error.URLError, TimeoutError) as e:
+            except (KeyError, IndexError, OSError, http.client.HTTPException) as e:
                 _cool[model] = time.time() + 10; print(f"    {model}: {type(e).__name__} -> fallback"); continue
             raw = wav + ".pcm"
             open(raw, "wb").write(pcm)
@@ -173,7 +218,7 @@ def _norm(t):
     return re.sub(r"[^\w ]", " ", unicodedata.normalize("NFC", t.lower())).split()
 
 def transcribe(wav, key):
-    model = os.environ.get("GEMINI_STT_MODEL", "gemini-2.5-flash")
+    model = os.environ.get("GEMINI_STT_MODEL", "gemini-3.8-flash")
     mp3 = wav + ".mp3"
     sh(["ffmpeg", "-y", "-i", wav, "-ac", "1", "-b:a", "64k", mp3])
     b = base64.b64encode(open(mp3, "rb").read()).decode(); os.remove(mp3)
@@ -188,7 +233,9 @@ def transcribe(wav, key):
         except urllib.error.HTTPError as e:
             if e.code in (429, 500, 503): time.sleep(10 * (attempt + 1)); continue
             raise
-    return ""
+        except (KeyError, IndexError, OSError, http.client.HTTPException):   # empty answer / network -> retry
+            time.sleep(5 * (attempt + 1)); continue
+    return None   # could not verify
 
 def matches(text, heard):
     """Word-level similarity; also rejects any leaked style direction."""
@@ -235,6 +282,8 @@ def voices(lines, primary_only=False):
             for attempt in range(3 if key else 0):
                 model = gemini_tts(text, wav, key)
                 heard = transcribe(wav, key)
+                if heard is None:
+                    print("    check SKIPPED (checker returned nothing) -> listen to this clip"); break
                 ok, r = matches(text, heard)
                 print(f"    check {r:.2f} {'OK ' if ok else 'BAD'} heard: {heard}")
                 if ok: break
@@ -280,7 +329,7 @@ def main():
     ap.add_argument("--primary-only", action="store_true")
     args = ap.parse_args()
     m = metrics(args.fake, args.state)
-    print(f"metrics ({'FAKE' if args.fake else args.state}): " + json.dumps(m["fmt"], ensure_ascii=False))
+    print(f"metrics ({'FAKE' if args.fake else args.state}; local states {m['local']}): " + json.dumps(m["fmt"], ensure_ascii=False))
     scenes, engine = voices(narration(m), args.primary_only)
     os.makedirs(os.path.join(PUB, "sfx"), exist_ok=True)
     for k, f in SFX.items():

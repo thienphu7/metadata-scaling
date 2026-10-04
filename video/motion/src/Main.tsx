@@ -17,8 +17,14 @@ const DEFS: Record<string, Def> = {
   meth_1: {comp: S.Meth1, min: 170, lead: 16},
   meth_2: {comp: S.Meth2, min: 200, lead: 16},
   exp: {comp: S.Exp, min: 230, lead: 16},
-  res: {comp: S.Res, min: 230, lead: 20, tint: C.amber},
+  measure: {comp: S.Measure, min: 210, lead: 16},
+  curve: {comp: S.Curve, min: 260, lead: 16},
+  split: {comp: S.Split, min: 230, lead: 16},
+  speed: {comp: S.Speed, min: 280, lead: 20, tint: C.amber},
+  scan: {comp: S.Scan, min: 240, lead: 16, tint: C.amber},
+  cost: {comp: S.Cost, min: 200, lead: 16},
   fail: {comp: S.Fail, min: 200, lead: 16, tint: C.rose},
+  decide: {comp: S.Decide, min: 220, lead: 16},
   outro: {comp: S.Outro, min: 200, lead: 16, tail: 75},
 };
 const OVERLAP = 12;
@@ -60,7 +66,14 @@ export const Main: React.FC = () => {
     ["merge", A("meth_1", 0.45) - 18, 0.8], ["impact", A("meth_1", 0.45), 0.9],
     ["whoosh", A("meth_2", 0.2), 0.6], ["shimmer", A("meth_2", 0.55), 0.6],
     ["impact", A("exp", 0.62), 0.8],
-    ["riser", A("res", 0.42) - 90, 0.7], ["impact", A("res", 0.42), 0.9], ["impact", A("res", 0.78), 1], ["boom", A("res", 0.78), 0.6],
+    ["shimmer", A("measure", 0.05), 0.4], ["click", A("measure", 0.28), 0.5], ["click", A("measure", 0.55), 0.5], ["click", A("measure", 0.78), 0.5],
+    ["riser", A("curve", 0.45) - 80, 0.5], ["impact", A("curve", 0.5), 0.7],
+    ["whoosh", A("split", 0.55), 0.6], ["merge", A("split", 0.6), 0.6],
+    ["riser", A("speed", 0.35) - 90, 0.7], ["impact", A("speed", 0.35), 0.9], ["glitch", A("speed", 0.35) + 4, 0.4],
+    ["impact", A("speed", 0.85), 1], ["boom", A("speed", 0.85), 0.6],
+    ["whoosh", A("scan", 0.4), 0.5], ["whoosh", A("scan", 0.7), 0.5], ["shimmer", A("scan", 0.7) + 26, 0.6],
+    ["impact", A("cost", 0.05), 0.6], ["impact", A("cost", 0.5), 0.7],
+    ["click", A("decide", 0.05), 0.5], ["click", A("decide", 0.25), 0.5], ["click", A("decide", 0.55), 0.5],
     ["glitch", A("fail", 0.72), 0.7],
     ["boom", A("outro", 0.6), 0.8], ["shimmer", A("outro", 0.6) + 6, 0.5],
     ...tl.filter((s) => !s.cut).map((s) => ["whoosh", s.start - 6, 0.55] as [string, number, number]),
@@ -90,8 +103,8 @@ export const Main: React.FC = () => {
       <Sequence from={0} durationInFrames={g.title.start + 20} layout="none">
         <Audio src={staticFile("sfx/pulse.wav")} volume={(f) => interpolate(f, [0, 20, g.title.start - 10, g.title.start + 20], [0, 0.55, 0.55, 0], {extrapolateLeft: "clamp", extrapolateRight: "clamp"})} />
       </Sequence>
-      <Sequence from={g.res.start} durationInFrames={g.res.dur} layout="none">
-        <Audio src={staticFile("sfx/pulse.wav")} volume={(f) => interpolate(f, [0, 20, g.res.dur - 30, g.res.dur], [0, 0.45, 0.45, 0], {extrapolateLeft: "clamp", extrapolateRight: "clamp"})} />
+      <Sequence from={g.curve.start} durationInFrames={g.speed.start + g.speed.dur - g.curve.start} layout="none">
+        <Audio src={staticFile("sfx/pulse.wav")} volume={(f) => interpolate(f, [0, 30, g.speed.start + g.speed.dur - g.curve.start - 40, g.speed.start + g.speed.dur - g.curve.start], [0, 0.4, 0.4, 0], {extrapolateLeft: "clamp", extrapolateRight: "clamp"})} />
       </Sequence>
       {cues.map(([n, at, v], i) => <Sfx key={i} name={n} at={at} vol={v} />)}
     </AbsoluteFill>
