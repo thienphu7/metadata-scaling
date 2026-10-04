@@ -1,0 +1,3 @@
+state,variant,op,wall_time_s,bytes_rewritten,n_files_before,n_files_after,n_log_files_before,n_log_files_after,hardware
+S4,opt_a_checkpoint,checkpoint,0.483238832999632,0,20000,20000,1001,1003,Macbook-Pro-Gaohonggg.local|macOS-26.6.2-arm64-arm-64bit|cpu=12
+S4,opt_b_sorted,sort_rewrite_checkpoint,8.752748791001068,37505786,20000,20000,1001,1004,Macbook-Pro-Gaohonggg.local|macOS-26.6.2-arm64-arm-64bit|cpu=12

@@ -1,0 +1,13 @@
+{
+  "state": "MOCK",
+  "status": "PASS",
+  "measured_rows": 54,
+  "runs_per_combination": 3,
+  "unique_keys": 54,
+  "expected_rows": {
+    "q_main": 2,
+    "q_alt": 23,
+    "q_empty": 0
+  },
+  "hardware": "Macbook-Pro-Gaohonggg.local|macOS-26.6.2-arm64-arm-64bit|cpu=12"
+}

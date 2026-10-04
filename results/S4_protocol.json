@@ -1,0 +1,69 @@
+{
+  "state": "S4",
+  "protocol_frozen_at": "2026-10-04T17:11:13.335605+07:00",
+  "config": {
+    "seed": 42,
+    "n_rows": 1000000,
+    "n_customers": 100000,
+    "files_per_commit": 20,
+    "states": {
+      "MOCK": 20,
+      "S1": 100,
+      "S2": 1000,
+      "S3": 10000,
+      "S4": 20000
+    },
+    "heldout": [
+      "S4"
+    ],
+    "variants": [
+      "baseline",
+      "opt_a_checkpoint",
+      "opt_b_sorted"
+    ],
+    "queries": {
+      "q_main": {
+        "column": "customer_id",
+        "low": 1000,
+        "high": 1050
+      },
+      "q_alt": {
+        "column": "amount",
+        "low": 100.0,
+        "high": 101.0
+      },
+      "q_empty": {
+        "column": "customer_id",
+        "low": -100,
+        "high": -1
+      }
+    },
+    "n_runs": 10,
+    "paths": {
+      "tables": "data/tables",
+      "results": "results"
+    }
+  },
+  "python": "3.12.14",
+  "executable": "/Users/nguyendat/Downloads/miniconda3/envs/vin_lab/bin/python",
+  "packages": {
+    "deltalake": "1.6.6",
+    "pyarrow": "25.0.1",
+    "arro3-core": "0.9.0",
+    "numpy": "2.5.3",
+    "PyYAML": "6.0.3",
+    "pandas": "3.0.6",
+    "matplotlib": "3.11.2",
+    "jupyter": "1.1.1"
+  },
+  "hardware": "Macbook-Pro-Gaohonggg.local|macOS-26.6.2-arm64-arm-64bit|cpu=12",
+  "source_sha256": {
+    "src/bench.py": "aa902e2b4d33a7a97b6a3a5f2331ee6f7ae5794fcd59d7e8ec795f798b2c4edc",
+    "src/common.py": "540be95fe5c3bd42c68dbc1ab296eb03534acd7748a49779f26655e48ae10a3d",
+    "src/gen.py": "214c95e7e00ea9cc9fafcb273feb90204b0b916f87348c6ae990d3e6788c2a9c",
+    "src/optimize.py": "62baba8e5dff3697fb8ea8268541c97c1ea7e6a2eca790dd8c8cbb5e95039c0e",
+    "config.yaml": "c7830f400546fc1a48a1852f158808adb64bbbe3bd3145ea3d9c3ebd22bb813f",
+    "requirements.txt": "da3950c2e97e8febb374b0aa0226f449587427b96b78d274dd3c11a4f857c65f"
+  },
+  "note": "Protocol fixed before S4 measurement. No tuning on held-out results. Cold uses a fresh process; OS cache is retained."
+}

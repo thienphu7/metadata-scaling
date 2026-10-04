@@ -1,16 +1,35 @@
 """Phase 0: build the MOCK table (20 files) + results/results_fake.csv so everyone can work in parallel."""
-import os, csv, random
+import os, csv, random, json, time
 from common import *
 cfg = load_config()
 data = make_logical_data(cfg).slice(0, 20000)
 for v in cfg["variants"]:
     p = table_path(cfg, "MOCK", v)
+    if os.path.exists(p):
+        raise RuntimeError(f"MOCK table already exists: {p}; do not append duplicate data. Ask Phong how to reuse/rebuild it.")
+for v in cfg["variants"]:
+    p = table_path(cfg, "MOCK", v)
+    t0 = time.perf_counter()
     dt = create_empty_table(p)
     d = data.sort_by("customer_id") if v == "opt_b_sorted" else data
-    write_chunks(dt, d, cfg["states"]["MOCK"], 2)
+    written = write_chunks(dt, d, cfg["states"]["MOCK"], 2)
+    if v == "baseline":
+        baseline_time = time.perf_counter() - t0
+        baseline_bytes = written
     if v != "baseline":
         DeltaTable(p).create_checkpoint()
 os.makedirs(os.path.join(ROOT, cfg["paths"]["results"]), exist_ok=True)
+metadata = {
+    "state": "MOCK", "n_files": cfg["states"]["MOCK"],
+    "n_commits": (cfg["states"]["MOCK"] + 1) // 2, "n_rows": data.num_rows,
+    "gen_time_s": baseline_time, "bytes_written": baseline_bytes,
+    "has_checkpoint": has_checkpoint(table_path(cfg, "MOCK", "baseline")),
+    "expected_rows": {name: expected_rows(data, query) for name, query in cfg["queries"].items()},
+    "hardware": hardware(),
+}
+with open(os.path.join(ROOT, cfg["paths"]["results"], "state_MOCK.json"), "w") as f:
+    json.dump(metadata, f, indent=2)
+    f.write("\n")
 cols = ["state","variant","query","mode","run","t_load","t_prune","t_plan","t_scan",
         "n_files_total","files_selected","rows","expected_rows","hardware"]
 random.seed(0)
@@ -26,4 +45,4 @@ with open(os.path.join(ROOT, cfg["paths"]["results"], "results_fake.csv"), "w", 
                         ts = sel*2e-4*random.uniform(.8,1.2)
                         er = 0 if q == "q_empty" else 500
                         w.writerow([s,v,q,mode,r,tl,tp,tl+tp,ts,nf,sel,er,er,"FAKE"])
-print("MOCK tables + fake results ready")
+print("MOCK tables + state_MOCK.json + fake results ready")

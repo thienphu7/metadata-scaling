@@ -1,0 +1,15 @@
+{
+  "state": "MOCK",
+  "n_files": 20,
+  "n_commits": 10,
+  "n_rows": 20000,
+  "gen_time_s": 0.051232458999947994,
+  "bytes_written": 439941,
+  "has_checkpoint": false,
+  "expected_rows": {
+    "q_main": 2,
+    "q_alt": 23,
+    "q_empty": 0
+  },
+  "hardware": "Macbook-Pro-Gaohonggg.local|macOS-26.6.2-arm64-arm-64bit|cpu=12"
+}
