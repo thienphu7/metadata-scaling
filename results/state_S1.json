@@ -1,0 +1,15 @@
+{
+  "state": "S1",
+  "n_files": 100,
+  "n_commits": 5,
+  "n_rows": 1000000,
+  "gen_time_s": 0.2128786250250414,
+  "bytes_written": 21318060,
+  "has_checkpoint": false,
+  "expected_rows": {
+    "q_main": 473,
+    "q_alt": 1030,
+    "q_empty": 0
+  },
+  "hardware": "MacBook-Pro-Hung-inh.local|macOS-26.6.2-arm64-arm-64bit|cpu=8"
+}
