@@ -14,18 +14,19 @@ def read_csv(fp):
         r = csv.DictReader(f)
         return r.fieldnames, list(r)
 
-def check_results(fp, cfg, errs):
+def check_results(fp, cfg, errs, use_state_expectations=True):
     name = os.path.basename(fp)
     cols, rows = read_csv(fp)
     if cols != RES_COLS:
         errs.append(f"{name}: header {cols} != {RES_COLS}"); return
     states = {r["state"] for r in rows}
     exp_json = {}
-    for s in states:
-        sj = os.path.join(ROOT, cfg["paths"]["results"], f"state_{s}.json")
-        if os.path.exists(sj):
-            with open(sj) as f:
-                exp_json[s] = json.load(f)["expected_rows"]
+    if use_state_expectations:
+        for s in states:
+            sj = os.path.join(ROOT, cfg["paths"]["results"], f"state_{s}.json")
+            if os.path.exists(sj):
+                with open(sj) as f:
+                    exp_json[s] = json.load(f)["expected_rows"]
     bad_rows = [r for r in rows if r["rows"] != r["expected_rows"]]
     for r in bad_rows[:5]:
         errs.append(f"{name}: rows {r['rows']} != expected {r['expected_rows']} "
@@ -79,7 +80,7 @@ def main():
         if not res:
             errs.append("no results/results_S*.csv yet")
     for fp in res:
-        check_results(fp, cfg, errs)
+        check_results(fp, cfg, errs, use_state_expectations=not args.fake)
     for fp in costs:
         check_costs(fp, errs)
     if errs:
