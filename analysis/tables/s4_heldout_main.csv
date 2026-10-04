@@ -1,0 +1,10 @@
+state,variant,query,mode,PlanningSpeedup,TotalTimeSpeedup,wall_time_s,bytes_rewritten,PaybackQueries
+S4,baseline,q_alt,cold,1.0,1.0,,,
+S4,opt_a_checkpoint,q_alt,cold,3.124625882631402,1.0690231329044733,,,
+S4,opt_b_sorted,q_alt,cold,7.299935327921066,1.1038021706878365,,,
+S4,baseline,q_empty,cold,1.0,1.0,,,
+S4,opt_a_checkpoint,q_empty,cold,3.0129236284717833,3.0129236284717833,,,
+S4,opt_b_sorted,q_empty,cold,7.711846343535014,7.711846343535014,,,
+S4,baseline,q_main,cold,1.0,1.0,,,
+S4,opt_a_checkpoint,q_main,cold,3.0029541547573824,1.0745750182423959,,,
+S4,opt_b_sorted,q_main,cold,7.497642484332928,58.4321524154146,,,
