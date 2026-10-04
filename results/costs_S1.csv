@@ -1,0 +1,3 @@
+state,variant,op,wall_time_s,bytes_rewritten,n_files_before,n_files_after,n_log_files_before,n_log_files_after,hardware
+S1,opt_a_checkpoint,checkpoint,0.015841874992474914,0,100,100,6,8,MacBook-Pro-Hung-inh.local|macOS-26.6.2-arm64-arm-64bit|cpu=8
+S1,opt_b_sorted,sort_rewrite_checkpoint,0.31007245799992234,16146780,100,100,6,9,MacBook-Pro-Hung-inh.local|macOS-26.6.2-arm64-arm-64bit|cpu=8

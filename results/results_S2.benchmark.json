@@ -1,0 +1,98 @@
+{
+  "protocol_version": 1,
+  "state": "S2",
+  "variants": [
+    "baseline",
+    "opt_a_checkpoint",
+    "opt_b_sorted"
+  ],
+  "queries": {
+    "q_main": {
+      "column": "customer_id",
+      "low": 1000,
+      "high": 1050
+    },
+    "q_alt": {
+      "column": "amount",
+      "low": 100.0,
+      "high": 101.0
+    },
+    "q_empty": {
+      "column": "customer_id",
+      "low": -100,
+      "high": -1
+    }
+  },
+  "runs": 10,
+  "config": {
+    "seed": 42,
+    "n_rows": 1000000,
+    "n_customers": 100000,
+    "files_per_commit": 20,
+    "states": {
+      "MOCK": 20,
+      "S1": 100,
+      "S2": 1000,
+      "S3": 10000,
+      "S4": 20000
+    },
+    "heldout": [
+      "S4"
+    ],
+    "variants": [
+      "baseline",
+      "opt_a_checkpoint",
+      "opt_b_sorted"
+    ],
+    "queries": {
+      "q_main": {
+        "column": "customer_id",
+        "low": 1000,
+        "high": 1050
+      },
+      "q_alt": {
+        "column": "amount",
+        "low": 100.0,
+        "high": 101.0
+      },
+      "q_empty": {
+        "column": "customer_id",
+        "low": -100,
+        "high": -1
+      }
+    },
+    "n_runs": 10,
+    "paths": {
+      "tables": "data/tables",
+      "results": "results"
+    }
+  },
+  "expected_rows": {
+    "q_main": 473,
+    "q_alt": 1030,
+    "q_empty": 0
+  },
+  "hardware": "MacBook-Pro-Hung-inh.local|macOS-26.6.2-arm64-arm-64bit|cpu=8",
+  "python": "3.12.10",
+  "packages": {
+    "deltalake": "1.6.6",
+    "pyarrow": "25.0.1",
+    "arro3-core": "0.9.0",
+    "numpy": "2.5.3",
+    "PyYAML": "6.0.3",
+    "pandas": "3.0.6",
+    "matplotlib": "3.11.2",
+    "jupyter": "1.1.1"
+  },
+  "log_fingerprints": {
+    "baseline": "9220671cb204adf2c55451d525582b1dd484d4d3b26c56987c551686fda52e43",
+    "opt_a_checkpoint": "159eab7ad7cc6e2cf6ab83ab4a1400ddb4d62cd766dd5664da4283f1e4a8c1d5",
+    "opt_b_sorted": "e56f87a317629512c52b018a6263ce67042ca39961ee89f63842afc9a5c8ceb2"
+  },
+  "method_sources": {
+    "bench.py": "aa902e2b4d33a7a97b6a3a5f2331ee6f7ae5794fcd59d7e8ec795f798b2c4edc",
+    "common.py": "540be95fe5c3bd42c68dbc1ab296eb03534acd7748a49779f26655e48ae10a3d"
+  },
+  "cold_definition": "fresh Python process; OS page cache not cleared",
+  "warm_definition": "one discarded warm-up per variant/query; reopen DeltaTable every measurement"
+}
