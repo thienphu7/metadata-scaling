@@ -83,91 +83,91 @@
    "id": "hook_1",
    "text": "Một triệu dòng dữ liệu.",
    "voice": "voice/hook_1.wav",
-   "dur": 2.086,
+   "dur": 1.772,
    "model": "gemini-3.8-flash-tts"
   },
   {
    "id": "hook_2",
    "text": "20.000 file.",
    "voice": "voice/hook_2.wav",
-   "dur": 1.926,
+   "dur": 1.786,
    "model": "gemini-3.8-flash-tts"
   },
   {
    "id": "hook_3",
    "text": "Và engine mất 0,51 giây... chỉ để lên kế hoạch. Chưa đọc một dòng nào.",
    "voice": "voice/hook_3.wav",
-   "dur": 5.166,
+   "dur": 4.83,
    "model": "gemini-3.8-flash-tts"
   },
   {
    "id": "title",
    "text": "Đây là câu chuyện về metadata. Nhóm 7: Metadata Scaling và Query Planning.",
    "voice": "voice/title.wav",
-   "dur": 5.846,
+   "dur": 6.092,
    "model": "gemini-3.8-flash-tts"
   },
   {
    "id": "prob_1",
    "text": "Mỗi lần mở bảng, engine phải đọc lại toàn bộ transaction log. Một nghìn commit. Hai mươi nghìn bản ghi file.",
    "voice": "voice/prob_1.wav",
-   "dur": 6.846,
+   "dur": 6.433,
    "model": "gemini-3.8-flash-tts"
   },
   {
    "id": "prob_2",
    "text": "Dữ liệu lại nằm ngẫu nhiên, nên khoảng min max của mọi file đều chồng lên nhau. Không file nào bị loại.",
    "voice": "voice/prob_2.wav",
-   "dur": 6.006,
+   "dur": 5.693,
    "model": "gemini-3.8-flash-tts"
   },
   {
    "id": "hypo",
    "text": "Giả thuyết: thời gian planning tăng theo số file và số commit, không theo dung lượng. Và có thể giảm ít nhất ba lần.",
    "voice": "voice/hypo.wav",
-   "dur": 7.326,
+   "dur": 7.029,
    "model": "gemini-3.8-flash-tts"
   },
   {
    "id": "meth_1",
    "text": "Cách thứ nhất: checkpoint. Gộp toàn bộ log thành một file duy nhất.",
    "voice": "voice/meth_1.wav",
-   "dur": 4.686,
+   "dur": 4.385,
    "model": "gemini-3.8-flash-tts"
   },
   {
    "id": "meth_2",
    "text": "Cách thứ hai: sắp xếp dữ liệu theo cột lọc. Mỗi file giữ một khoảng hẹp, và chỉ còn 100 trên 20.000 file được chọn.",
    "voice": "voice/meth_2.wav",
-   "dur": 6.886,
+   "dur": 6.486,
    "model": "gemini-3.8-flash-tts"
   },
   {
    "id": "exp",
    "text": "Cùng một triệu dòng, chia từ một trăm đến hai mươi nghìn file. Mỗi phép đo chạy mười lần. Trạng thái lớn nhất bị khóa lại, chỉ chạy khi phương pháp đã chốt.",
    "voice": "voice/exp.wav",
-   "dur": 9.286,
+   "dur": 8.826,
    "model": "gemini-3.8-flash-tts"
   },
   {
    "id": "res",
    "text": "Số liệu minh họa. Trên tập held-out: checkpoint nhanh hơn 3,0 lần. Checkpoint cộng sắp xếp: nhanh hơn 7,5 lần.",
    "voice": "voice/res.wav",
-   "dur": 7.966,
+   "dur": 7.603,
    "model": "gemini-3.8-flash-tts"
   },
   {
    "id": "fail",
    "text": "Nhưng sắp xếp không phải phép màu. Lọc theo một cột chưa sắp xếp, engine vẫn phải mở 20.000 trên 20.000 file.",
    "voice": "voice/fail.wav",
-   "dur": 7.086,
+   "dur": 6.761,
    "model": "gemini-3.8-flash-tts"
   },
   {
    "id": "outro",
    "text": "Metadata cũng là dữ liệu, và nó cần được chăm sóc. Nhóm 7. Cảm ơn đã theo dõi.",
    "voice": "voice/outro.wav",
-   "dur": 6.486,
+   "dur": 6.139,
    "model": "gemini-3.8-flash-tts"
   }
  ],

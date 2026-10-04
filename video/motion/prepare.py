@@ -130,9 +130,43 @@ def gemini_tts(text, wav, key):
                        "silenceremove=start_periods=1:start_threshold=-50dB,areverse",
                 "-ar", "48000", "-ac", "2", wav])
             os.remove(raw)
+            print(f"    tail: {clean_tail(wav)}")
             return model
         time.sleep(5)   # every model busy -> wait for a window to free up
     sys.exit("Gemini TTS: no model available after retries")
+
+def _seg_stats(wav, start, length):
+    """RMS (dB) and zero-crossing rate of a segment."""
+    import re
+    log = subprocess.run(["ffmpeg", "-ss", f"{start:.3f}", "-t", f"{length:.3f}", "-i", wav, "-af", "astats", "-f", "null", "-"],
+                         capture_output=True, text=True).stderr
+    rms = re.findall(r"RMS level dB: (-?[\d.]+|-inf)", log)
+    zcr = re.findall(r"Zero crossings rate: ([\d.]+)", log)
+    return (float(rms[-1]) if rms and rms[-1] != "-inf" else -99.0), (float(zcr[-1]) if zcr else 0.0)
+
+def clean_tail(wav):
+    """Gemini clips end with a short loud burst after the last pause (audible 'rẹt'):
+    measured ~0.13 s at about -8 dB. Cut it only if the trailing segment is that short AND that
+    loud; a real last word after a pause is longer/quieter and is kept. Run once, on fresh clips only."""
+    import re
+    total = dur(wav)
+    log = subprocess.run(["ffmpeg", "-i", wav, "-af", "silencedetect=n=-45dB:d=0.08", "-f", "null", "-"],
+                         capture_output=True, text=True).stderr
+    starts = [float(x) for x in re.findall(r"silence_start: ([\d.]+)", log)]
+    ends = [float(x) for x in re.findall(r"silence_end: ([\d.]+)", log)]
+    if not starts or len(ends) < len(starts):
+        return None
+    s0, e0 = starts[-1], ends[-1]
+    tail = total - e0
+    rms, zcr = _seg_stats(wav, e0, tail)
+    info = f"tail {tail:.2f}s rms {rms:.0f}dB zcr {zcr:.2f}"
+    if tail > 0.2 or rms < -13:   # burst: ~0.13 s at about -8 dB, louder than speech
+        return f"kept ({info})"
+    cut = s0 + 0.05
+    tmp = wav + ".tmp.wav"
+    sh(["ffmpeg", "-y", "-i", wav, "-t", f"{cut:.3f}", "-af", f"afade=t=out:st={max(0, cut - 0.06):.3f}:d=0.06", tmp])
+    os.replace(tmp, wav)
+    return f"cut noise ({info})"
 
 def _norm(t):
     import re, unicodedata
