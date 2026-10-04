@@ -1,0 +1,14 @@
+Generating S4: 1,000,000 rows across 20,000 files.
+10% complete: 2020/20000 files (898.7 files/s)
+20% complete: 4020/20000 files (501.5 files/s)
+30% complete: 6000/20000 files (339.0 files/s)
+40% complete: 8000/20000 files (251.5 files/s)
+50% complete: 10000/20000 files (193.9 files/s)
+60% complete: 12000/20000 files (158.8 files/s)
+70% complete: 14000/20000 files (134.0 files/s)
+80% complete: 16000/20000 files (116.0 files/s)
+90% complete: 18000/20000 files (102.4 files/s)
+100% complete: 20000/20000 files (91.9 files/s)
+100% complete: 20000/20000 files (91.7 files/s)
+Verified S4; wrote /Users/nguyendat/Documents/VIN/LAB/metadata-scaling/results/state_S4.json
+Generation time: 218.02s; data written: 42,601,644 bytes

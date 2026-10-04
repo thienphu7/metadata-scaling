@@ -1,0 +1,24 @@
+{
+  "state": "S4",
+  "variant": "opt_a_checkpoint",
+  "op": "checkpoint",
+  "wall_time_s": 0.483238832999632,
+  "bytes_rewritten": 0,
+  "n_files_before": 20000,
+  "n_files_after": 20000,
+  "n_log_files_before": 1001,
+  "n_log_files_after": 1003,
+  "hardware": "Macbook-Pro-Gaohonggg.local|macOS-26.6.2-arm64-arm-64bit|cpu=12"
+}
+{
+  "state": "S4",
+  "variant": "opt_b_sorted",
+  "op": "sort_rewrite_checkpoint",
+  "wall_time_s": 8.752748791001068,
+  "bytes_rewritten": 37505786,
+  "n_files_before": 20000,
+  "n_files_after": 20000,
+  "n_log_files_before": 1001,
+  "n_log_files_after": 1004,
+  "hardware": "Macbook-Pro-Gaohonggg.local|macOS-26.6.2-arm64-arm-64bit|cpu=12"
+}

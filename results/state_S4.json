@@ -1,0 +1,15 @@
+{
+  "state": "S4",
+  "n_files": 20000,
+  "n_commits": 1000,
+  "n_rows": 1000000,
+  "gen_time_s": 218.02365754200036,
+  "bytes_written": 42601644,
+  "has_checkpoint": false,
+  "expected_rows": {
+    "q_main": 473,
+    "q_alt": 1030,
+    "q_empty": 0
+  },
+  "hardware": "Macbook-Pro-Gaohonggg.local|macOS-26.6.2-arm64-arm-64bit|cpu=12"
+}

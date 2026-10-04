@@ -1,0 +1,14 @@
+test_interrupted_session_resumes_missing_rows_without_duplicates (test_bench.BenchmarkContractTests.test_interrupted_session_resumes_missing_rows_without_duplicates) ... ok
+test_measurement_uses_shared_plan_scan_and_sums_timings (test_bench.BenchmarkContractTests.test_measurement_uses_shared_plan_scan_and_sums_timings) ... ok
+test_mismatch_is_persisted_and_stops_before_next_measurement (test_bench.BenchmarkContractTests.test_mismatch_is_persisted_and_stops_before_next_measurement) ... ok
+test_package_versions_must_match_requirements (test_bench.BenchmarkContractTests.test_package_versions_must_match_requirements) ... ok
+test_preflight_requires_independent_answers_and_checkpoint_state (test_bench.BenchmarkContractTests.test_preflight_requires_independent_answers_and_checkpoint_state) ... ok
+test_real_subprocess_worker_emits_only_one_json_line (test_bench.BenchmarkContractTests.test_real_subprocess_worker_emits_only_one_json_line) ... ok
+test_rejects_nan_and_invalid_plan_sum (test_bench.BenchmarkContractTests.test_rejects_nan_and_invalid_plan_sum) ... ok
+test_resume_rejects_changed_method_and_plain_rerun (test_bench.BenchmarkContractTests.test_resume_rejects_changed_method_and_plain_rerun) ... ok
+test_round_robin_and_one_warmup_per_pair (test_bench.BenchmarkContractTests.test_round_robin_and_one_warmup_per_pair) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.074s
+
+OK
