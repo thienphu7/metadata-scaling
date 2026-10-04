@@ -7,6 +7,7 @@ import shutil
 import sys
 import threading
 import time
+from urllib.parse import unquote, urlparse
 
 from common import (
     ROOT,
@@ -45,7 +46,10 @@ def data_for_state(cfg, state):
 def write_with_progress(dt, data, n_files, files_per_commit):
     """Reuse write_chunks while reporting completed-file milestones every 10%."""
     result, failure = [], []
-    table_dir = dt.table_uri.replace("file://", "").rstrip("/")
+    uri = urlparse(dt.table_uri)
+    table_dir = unquote(uri.path).rstrip("/") if uri.scheme == "file" else dt.table_uri.rstrip("/")
+    if os.name == "nt" and len(table_dir) >= 3 and table_dir[0] == "/" and table_dir[2] == ":":
+        table_dir = table_dir[1:]
     started = time.perf_counter()
 
     def run_write():

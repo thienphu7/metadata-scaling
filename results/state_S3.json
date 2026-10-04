@@ -1,0 +1,15 @@
+{
+  "state": "S3",
+  "n_files": 10000,
+  "n_commits": 500,
+  "n_rows": 1000000,
+  "gen_time_s": 121.98124100000132,
+  "bytes_written": 31964274,
+  "has_checkpoint": false,
+  "expected_rows": {
+    "q_main": 473,
+    "q_alt": 1030,
+    "q_empty": 0
+  },
+  "hardware": "DESKTOP-644ABQ8|Windows-11-10.0.26200-SP0|cpu=12"
+}

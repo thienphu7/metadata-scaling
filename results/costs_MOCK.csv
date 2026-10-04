@@ -1,0 +1,3 @@
+state,variant,op,wall_time_s,bytes_rewritten,n_files_before,n_files_after,n_log_files_before,n_log_files_after,hardware
+MOCK,opt_a_checkpoint,checkpoint,0.03751890000057756,0,20,20,11,13,DESKTOP-644ABQ8|Windows-11-10.0.26200-SP0|cpu=12
+MOCK,opt_b_sorted,sort_rewrite_checkpoint,0.4218753999994078,422816,20,20,11,14,DESKTOP-644ABQ8|Windows-11-10.0.26200-SP0|cpu=12

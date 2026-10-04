@@ -1,5 +1,6 @@
 """Shared helpers - DO NOT change signatures without telling the whole team."""
 import json, os, time, uuid, platform
+from urllib.parse import unquote, urlparse
 import numpy as np, pyarrow as pa, pyarrow.parquet as pq, pyarrow.compute as pc, yaml
 from deltalake import DeltaTable, write_deltalake, PostCommitHookProperties
 from deltalake.transaction import AddAction
@@ -34,7 +35,12 @@ def _stats(tb):
 def write_chunks(dt, data, n_files, files_per_commit, mode="append", prefix="part"):
     """Split `data` into n_files parquet files and commit them through the official
     deltalake transaction API, files_per_commit files per commit. Returns bytes written."""
-    path = dt.table_uri.replace("file://", "").rstrip("/")
+    # Delta returns file:///D:/... on Windows.  PyArrow expects D:/..., not
+    # the URI path /D:/..., while POSIX file URIs can retain their leading /.
+    uri = urlparse(dt.table_uri)
+    path = unquote(uri.path).rstrip("/") if uri.scheme == "file" else dt.table_uri.rstrip("/")
+    if os.name == "nt" and len(path) >= 3 and path[0] == "/" and path[2] == ":":
+        path = path[1:]
     per = data.num_rows // n_files
     acts, written, first = [], 0, True
     for i in range(n_files):
