@@ -39,3 +39,17 @@ ffmpeg -y -f concat -safe 0 -i list.txt -c copy nhom7_metadata_scaling.mp4
 ## Dựng tự động
 `python video/make_video.py --fake` (số liệu giả, có nhãn) hoặc `--state S4` (số thật sau phút 85).
 Giọng mặc định là macOS "Linh" (tạm). Dùng Gemini: đặt `hook_1.wav … hook_3.wav, cover.wav, pain.wav, design.wav, results.wav, decision.wav` vào `video/audio/` rồi thêm `--audio-dir video/audio`. Lời thoại cần đọc nằm trong `video/build/<fake|S4>/narration.txt`.
+
+## Video motion graphics (Remotion + giọng Gemini)
+Bản điện ảnh, không phải slide: `video/motion/`. Lời thoại riêng, ngắn hơn, nằm trong `prepare.py` (`narration()`).
+```bash
+cd video/motion && npm install                      # lần đầu
+../../.venv/bin/python prepare.py --fake            # hoặc --state S4 sau phút 85
+npx remotion render src/index.ts Main ../build/nhom7_motion.mp4
+npx remotion studio src/index.ts                    # xem trước, tua từng khung
+```
+- Key: `gemini_key=` trong `.env` ở gốc repo (đã gitignore).
+- Model TTS: `gemini-3.8-flash-tts` (10 request/phút) → tự chuyển sang `gemini-3.1-flash-tts-preview`, `gemini-2.5-flash-preview-tts`, `gemini-2.5-pro-preview-tts` khi bị giới hạn. `--primary-only` tạo lại các câu do model dự phòng đọc.
+- Mỗi câu được Gemini chép lại để kiểm tra: lệch lời hoặc sai bất kỳ con số nào → tự tạo lại (tối đa 3 lần).
+- Không dùng câu chỉ dẫn phong cách: model có lúc đọc to luôn câu chỉ dẫn.
+- Hiệu ứng âm thanh và nhạc nền đều tự tổng hợp bằng ffmpeg (không có vấn đề bản quyền).

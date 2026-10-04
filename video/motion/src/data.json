@@ -1,0 +1,175 @@
+{
+ "metrics": {
+  "fake": true,
+  "state": "S4",
+  "n_files": 20000,
+  "base": 0.5103654296110794,
+  "a": 0.16995445261877912,
+  "b": 0.06807012079830946,
+  "sa": 3.0029541547573824,
+  "sb": 7.497642484332928,
+  "sel_b": 100,
+  "alt_sel": 20000,
+  "cost_b": null,
+  "chart": {
+   "baseline": [
+    [
+     100,
+     0.002541943758509775
+    ],
+    [
+     1000,
+     0.02378770306695547
+    ],
+    [
+     10000,
+     0.2669246282208888
+    ],
+    [
+     20000,
+     0.5103654296110794
+    ]
+   ],
+   "opt_a_checkpoint": [
+    [
+     100,
+     0.000845169824782985
+    ],
+    [
+     1000,
+     0.008178825729130205
+    ],
+    [
+     10000,
+     0.08205219823337061
+    ],
+    [
+     20000,
+     0.16995445261877912
+    ]
+   ],
+   "opt_b_sorted": [
+    [
+     100,
+     0.000353922762859765
+    ],
+    [
+     1000,
+     0.003389062677704875
+    ],
+    [
+     10000,
+     0.03406183440782336
+    ],
+    [
+     20000,
+     0.06807012079830946
+    ]
+   ]
+  },
+  "fmt": {
+   "n_files": "20.000",
+   "base": "0,51",
+   "a": "0,17",
+   "b": "0,07",
+   "sa": "3,0",
+   "sb": "7,5",
+   "sel_b": "100",
+   "alt_sel": "20.000"
+  }
+ },
+ "scenes": [
+  {
+   "id": "hook_1",
+   "text": "Một triệu dòng dữ liệu.",
+   "voice": "voice/hook_1.wav",
+   "dur": 2.086,
+   "model": "gemini-3.8-flash-tts"
+  },
+  {
+   "id": "hook_2",
+   "text": "20.000 file.",
+   "voice": "voice/hook_2.wav",
+   "dur": 1.926,
+   "model": "gemini-3.8-flash-tts"
+  },
+  {
+   "id": "hook_3",
+   "text": "Và engine mất 0,51 giây... chỉ để lên kế hoạch. Chưa đọc một dòng nào.",
+   "voice": "voice/hook_3.wav",
+   "dur": 5.166,
+   "model": "gemini-3.8-flash-tts"
+  },
+  {
+   "id": "title",
+   "text": "Đây là câu chuyện về metadata. Nhóm 7: Metadata Scaling và Query Planning.",
+   "voice": "voice/title.wav",
+   "dur": 5.846,
+   "model": "gemini-3.8-flash-tts"
+  },
+  {
+   "id": "prob_1",
+   "text": "Mỗi lần mở bảng, engine phải đọc lại toàn bộ transaction log. Một nghìn commit. Hai mươi nghìn bản ghi file.",
+   "voice": "voice/prob_1.wav",
+   "dur": 6.846,
+   "model": "gemini-3.8-flash-tts"
+  },
+  {
+   "id": "prob_2",
+   "text": "Dữ liệu lại nằm ngẫu nhiên, nên khoảng min max của mọi file đều chồng lên nhau. Không file nào bị loại.",
+   "voice": "voice/prob_2.wav",
+   "dur": 6.006,
+   "model": "gemini-3.8-flash-tts"
+  },
+  {
+   "id": "hypo",
+   "text": "Giả thuyết: thời gian planning tăng theo số file và số commit, không theo dung lượng. Và có thể giảm ít nhất ba lần.",
+   "voice": "voice/hypo.wav",
+   "dur": 7.326,
+   "model": "gemini-3.8-flash-tts"
+  },
+  {
+   "id": "meth_1",
+   "text": "Cách thứ nhất: checkpoint. Gộp toàn bộ log thành một file duy nhất.",
+   "voice": "voice/meth_1.wav",
+   "dur": 4.686,
+   "model": "gemini-3.8-flash-tts"
+  },
+  {
+   "id": "meth_2",
+   "text": "Cách thứ hai: sắp xếp dữ liệu theo cột lọc. Mỗi file giữ một khoảng hẹp, và chỉ còn 100 trên 20.000 file được chọn.",
+   "voice": "voice/meth_2.wav",
+   "dur": 6.886,
+   "model": "gemini-3.8-flash-tts"
+  },
+  {
+   "id": "exp",
+   "text": "Cùng một triệu dòng, chia từ một trăm đến hai mươi nghìn file. Mỗi phép đo chạy mười lần. Trạng thái lớn nhất bị khóa lại, chỉ chạy khi phương pháp đã chốt.",
+   "voice": "voice/exp.wav",
+   "dur": 9.286,
+   "model": "gemini-3.8-flash-tts"
+  },
+  {
+   "id": "res",
+   "text": "Số liệu minh họa. Trên tập held-out: checkpoint nhanh hơn 3,0 lần. Checkpoint cộng sắp xếp: nhanh hơn 7,5 lần.",
+   "voice": "voice/res.wav",
+   "dur": 7.966,
+   "model": "gemini-3.8-flash-tts"
+  },
+  {
+   "id": "fail",
+   "text": "Nhưng sắp xếp không phải phép màu. Lọc theo một cột chưa sắp xếp, engine vẫn phải mở 20.000 trên 20.000 file.",
+   "voice": "voice/fail.wav",
+   "dur": 7.086,
+   "model": "gemini-3.8-flash-tts"
+  },
+  {
+   "id": "outro",
+   "text": "Metadata cũng là dữ liệu, và nó cần được chăm sóc. Nhóm 7. Cảm ơn đã theo dõi.",
+   "voice": "voice/outro.wav",
+   "dur": 6.486,
+   "model": "gemini-3.8-flash-tts"
+  }
+ ],
+ "voiceEngine": "gemini"
+}
