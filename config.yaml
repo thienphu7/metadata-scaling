@@ -1,0 +1,20 @@
+seed: 42
+n_rows: 1000000
+n_customers: 100000
+files_per_commit: 20
+states:
+  MOCK: 20
+  S1: 100
+  S2: 1000
+  S3: 10000
+  S4: 20000      # HELD-OUT
+heldout: [S4]
+variants: [baseline, opt_a_checkpoint, opt_b_sorted]
+queries:
+  q_main: {column: customer_id, low: 1000, high: 1050}
+  q_alt:  {column: amount, low: 100.0, high: 101.0}
+  q_empty: {column: customer_id, low: -100, high: -1}   # 0 rows: pure planning proxy
+n_runs: 10
+paths:
+  tables: data/tables      # data/tables/<STATE>/<variant>
+  results: results         # results/results_<STATE>.csv, results/costs_<STATE>.csv
